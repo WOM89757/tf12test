@@ -71,12 +71,16 @@ def block(in_tensor, filters, n_conv):
         conv_block = simple_conv2d(filters=filters)(conv_block)
     return simple_maxpool(conv_block)
 
-def vggnet(image_batch):
+def vggnet(image_batch, vgg_version=16):
+    if vgg_version == 16:
+        conv3_5 = 3
+    elif vgg_version== 19:
+        conv3_5 = 4
     block1 = block(image_batch, 64, 2)
     block2 = block(block1, 128, 2)
-    block3 = block(block2, 256, 3)
-    block4 = block(block3, 512, 3)
-    block5 = block(block4, 512, 3)
+    block3 = block(block2, 256, conv3_5)
+    block4 = block(block3, 512, conv3_5)
+    block5 = block(block4, 512, conv3_5)
     flat = layers.Flatten()(block5)
     h_fc1 = layers.Dense(4096, activation='relu')(flat)
     h_fc2 = layers.Dense(4096, activation='relu')(h_fc1)
@@ -85,7 +89,7 @@ def vggnet(image_batch):
 
 x = layers.Input(shape=(224, 224, 3))
 y_ = layers.Input(shape=(1000,))
-y = vggnet(x)
+y = vggnet(x, vgg_version=19)
 model = models.Model(x, y)
 print(model.summary())
 correct_prediction = tf.equal(tf.argmax(y_, 1), tf.argmax(y, 1))

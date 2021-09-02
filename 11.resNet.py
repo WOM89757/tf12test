@@ -97,7 +97,21 @@ def block(in_tensor, filters, n_block, downsample=False):
             res = resnet_block(res, filters, False)
     return res
 
-def resnet(image_batch):
+def resnet(image_batch, netname):
+    resnet_config = {
+                    'ResNet18':[2, 2, 2, 2],
+                    'ResNet34':[3, 4, 6, 3],
+                    'ResNet50':[3, 4, 6, 3],
+                    'ResNet101':[3, 4, 23, 3],
+                    'ResNet152':[3, 8, 36, 3]
+                    }
+    layers_dims = resnet_config[netname]
+
+    filter_block1 = [64, 64, 256]
+    filter_block2 = [128, 128, 512]
+    filter_block3 = [256, 256, 1024]
+    filter_block4 = [512, 512, 2048]
+
     conv = layers.Conv2D(64, 7, strides=2, padding='same')(image_batch) 
     conv =  _after_conv(conv)
     pool1 = layers.MaxPool2D(3, 2, padding='same')(conv)
@@ -116,7 +130,7 @@ def resnet(image_batch):
 
 x = layers.Input(shape=(224, 224, 3))
 y_ = layers.Input(shape=(1000,))
-y = resnet(x)
+y = resnet(x, netname='ResNet34')
 model = models.Model(x, y)
 print(model.summary())
 correct_prediction = tf.equal(tf.argmax(y_, 1), tf.argmax(y, 1))
